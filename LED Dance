@@ -1,0 +1,21 @@
+int r=5;
+int g=2;
+int y=7;
+
+void setup() {
+pinMode(r,OUTPUT);  
+pinMode(g,OUTPUT);
+pinMode(y,OUTPUT);
+}
+
+void loop() {
+  digitalWrite(r,HIGH);
+  delay(150);
+  digitalWrite(r,LOW);
+  digitalWrite(g,HIGH);
+  delay(150);
+  digitalWrite(g,LOW);
+  digitalWrite(y,HIGH);
+  delay(150);
+  digitalWrite(y,LOW);
+}
