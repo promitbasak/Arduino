@@ -1,0 +1,10 @@
+int button=4;
+int led=5;
+void setup() {
+  pinMode(button,INPUT);
+  pinMode(led,OUTPUT);
+}
+
+void loop() {
+  digitalWrite(led,digitalRead(button));
+}
