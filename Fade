@@ -1,0 +1,26 @@
+int r=5;
+int y=9;
+int rb=0;
+int yb=215;
+int jr=5;
+int jy=5;
+void setup() {
+  pinMode(r,OUTPUT);
+  pinMode(y,OUTPUT);
+}
+
+void loop() {
+  analogWrite(r,rb);
+  analogWrite(y,yb);
+  rb=rb+jr;
+  yb=yb-jy;
+  if(rb<=0||rb>=215)
+  {
+    jr=-jr;
+  }
+  if(yb<=0||yb>=215)
+  {
+    jy=-jy;
+  }
+  delay(15);
+}
