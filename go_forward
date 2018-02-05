@@ -1,0 +1,24 @@
+int motorPinR2=5;
+int motorPinR1=6;
+int motorPinL1=9;
+int motorPinL2=10;
+void setup() 
+{
+  pinMode(motorPinL1,OUTPUT);
+  pinMode(motorPinL2,OUTPUT);
+  pinMode(motorPinR1,OUTPUT);
+  pinMode(motorPinR2,OUTPUT);
+}
+
+void goForward(int speed) 
+{
+  analogWrite(motorPinL1,speed);
+  analogWrite(motorPinL2,0);
+  analogWrite(motorPinR1,0);
+  analogWrite(motorPinR2,speed);
+}
+
+void loop()
+{
+  goForward(150);
+}
