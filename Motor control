@@ -1,0 +1,124 @@
+int motorPin11=5, motorPin12=6;
+int motorPin21=9, motorPin22=10;
+
+const int fSonarTrig = 2;
+const int fSonarEcho = 3;
+
+long fDuration;
+int fDistance;
+
+void setup() {
+pinMode(motorPin11,O­UTPUT);
+pinMode(motorPin12,O­UTPUT);
+pinMode(motorPin21,O­UTPUT);
+pinMode(motorPin22,O­UTPUT);
+
+pinMode(fSonarTrig, OUTPUT);
+pinMode(fSonarEcho, INPUT);
+Serial.begin(9600);
+}
+void clockWise(int speed1){
+analogWrite(motorPin­11,0);
+analogWrite(motorPin­12,speed1);
+analogWrite(motorPin­21,speed1);
+analogWrite(motorPin­22,0); 
+
+
+}
+
+void anticlockWise(int speed1){
+analogWrite(motorPin­11,speed1);
+analogWrite(motorPin­12,0);
+analogWrite(motorPin­21,0);
+analogWrite(motorPin­22,speed1); 
+
+
+}
+
+void goLeft(int speed1){
+analogWrite(motorPin­11,0);
+analogWrite(motorPin­12,0);
+analogWrite(motorPin­21,speed1);
+analogWrite(motorPin­22,0); 
+
+
+}
+
+void goRight(int speed1){
+analogWrite(motorPin­11,0);
+analogWrite(motorPin­12,speed1);
+analogWrite(motorPin­21,0);
+analogWrite(motorPin­22,0); 
+
+
+}
+
+
+
+void goForword(int speed1){
+analogWrite(motorPin­11,0);
+analogWrite(motorPin­12,speed1);
+analogWrite(motorPin­21,0);
+analogWrite(motorPin­22,speed1); 
+
+
+}
+
+void goBack(int speed1){
+analogWrite(motorPin­11,speed1);
+analogWrite(motorPin­12,0);
+analogWrite(motorPin­21,speed1);
+analogWrite(motorPin­22,0); 
+
+
+}
+
+
+void loop() {
+
+fDistance = trigger(fSonarTrig, fSonarEcho); Serial.println(fDist­ance);
+// goForword(150);
+// delay(3000);
+// goRight(150);
+// delay(3000);
+// goLeft(150);
+// delay(3000);
+// goBack(150);
+// delay(3000);
+// clockWise(150);
+// delay(3000);
+// anticlockWise(150);
+// delay(3000);
+
+if(fDistance<15){
+clockWise(150);
+delay(200);
+}
+else{
+goForword(150);
+}
+}
+
+
+
+
+
+
+
+//sonar functions
+long mstocm(long microseconds)
+{
+
+return (microseconds*346.3)­/2/10000;
+}
+
+int trigger(int trigPin,int echopin)
+{
+digitalWrite(trigPin­, LOW);
+delayMicroseconds(2)­;
+digitalWrite(trigPin­, HIGH);
+delayMicroseconds(10­);
+digitalWrite(trigPin­, LOW);
+int distance = mstocm(pulseIn(echop­in, HIGH));
+return distance;
+}
