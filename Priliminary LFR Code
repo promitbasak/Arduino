@@ -1,0 +1,343 @@
+#define sensorNum 8
+#define maxSpeed 105
+#define initIR 0
+int blackLimit[sensorNum] = {475,475,475,475,475,475,475,475}; //set blackLimit here
+int digitalReading[sensorNum];
+int totalDigitalReading=0; //for allblack
+
+
+int allBlackCount;
+int allWhiteCount;
+
+const int motorPin1=6,motorPin2=5;        //right motor
+const int motorPin3=10,motorPin4=9;       //left motor
+
+float error, prevError=0;
+
+float mappedValue, targetValue = 7;      //changed from 4.5 to 9
+
+float safety=0.35;
+
+float kp=50;                             //45 IF DOESN'T WORK
+float kd=10 ;
+
+
+int motorResponse;
+float correction;
+
+int leftSpeed,rightSpeed;
+
+int acuteLeft;
+int acuteRight;
+
+
+int time=10;
+
+
+
+
+void setup()
+{
+
+  //initialize motor pins
+  pinMode(motorPin1, OUTPUT);
+  pinMode(motorPin2, OUTPUT); 
+  pinMode(motorPin3, OUTPUT);
+  pinMode(motorPin4, OUTPUT);
+
+  
+  Serial.begin(9600);
+ /* brake();
+  delay(1000);
+  calibration();*/
+}
+
+
+
+
+
+void loop()
+{
+  allWhiteCount=0;
+  acuteLeft=0;
+  acuteRight=0;
+ 
+
+sensorMapping();
+  if(totalDigitalReading==8)
+  {
+    for(allBlackCount=0;allBlackCount<10;allBlackCount++)
+    {
+      sensorMapping();
+      if(totalDigitalReading!=8)
+      {
+        break;
+      }
+    }
+    if(allBlackCount<2)
+    {
+      goForward();
+    }
+    else
+    {
+      brake;
+    }
+  }
+  else if(mappedValue!=100)  //if bot is not fully on white
+    {
+      pid();
+      motor(leftSpeed,rightSpeed); 
+      /*if(acuteLeft==1&&acuteRight==0)
+      {
+       do
+       {
+        ACRotate();
+        sensorMapping();
+       }
+       while(digitalReading[4]!=0);
+      }
+      if(acuteRight==1&&acuteLeft==0)
+      {
+        do
+        {
+          CRotate();
+          sensorMapping();
+        }
+        while(digitalReading[3]!=0);
+      }*/
+    }
+    else if(mappedValue==100)
+    {
+      for(allWhiteCount=0;allWhiteCount<1000;allWhiteCount++)
+      {
+        sensorMapping();
+        if(mappedValue!=100)
+         {
+           break;
+         }
+      }
+      if(allWhiteCount<400)
+      {
+        if(prevError>7)
+        {
+          while(digitalReading!=1)
+          {
+            CRotate;
+          }
+        }
+        else if(prevError<7)
+        {
+          while(digitalReading[4]!=1)
+          {
+            ACRotate();
+          }
+        }
+      }
+      else
+      {
+        goForward();
+      }
+    }
+    
+  /* else //Used for crossing gaps
+      { 
+        /*
+         Greater than 90 degree turn
+         To be Programmed
+         
+       goForward();
+        while(1)
+        {
+          sensorMapping();
+          if(mappedValue!=100)
+          {
+            break;
+          }
+        }
+      }*/
+    
+    /*
+    Serial.print(leftSpeed);
+    Serial.print(" ");
+    Serial.print(rightSpeed);
+    Serial.println();
+    */
+
+}
+
+
+void sensorMapping()
+{
+int sum=0,count=0;
+ 
+ for (int i = 0; i <sensorNum; i++)
+  { 
+ 
+    if (analogRead(i) < blackLimit[i])      
+     { 
+      digitalReading[i] = 1;
+      sum += i*2;
+      count++;
+    }
+    else
+    {
+      digitalReading[i] = 0;
+    }
+    totalDigitalReading=totalDigitalReading+digitalReading[i];
+
+  }
+   if(count!=0){  
+  mappedValue = sum / count;
+   }
+   else 
+   {
+    mappedValue=100; //arbitrary value for all white
+   }
+   
+   /*
+  Serial.print("\tmappedValue: ");
+  Serial.println(mappedValue);
+  */
+  if(digitalReading[0]==1)
+  {
+    acuteLeft=1;
+  }
+  if(digitalReading[7]==1)
+  {
+    acuteRight=1;
+  }
+}
+
+
+void pid()
+{
+  
+  error=targetValue-mappedValue;
+  correction=(kp*error)+(kd*(error-prevError));
+  prevError=error;
+  motorResponse=(int)correction;
+ 
+ if(motorResponse>maxSpeed) motorResponse=maxSpeed;
+ 
+if(motorResponse<-maxSpeed) motorResponse=-maxSpeed;
+
+   if(motorResponse>0)
+  {
+    rightSpeed=maxSpeed;
+    leftSpeed=maxSpeed-motorResponse;
+  }
+  else 
+  {
+    rightSpeed=maxSpeed+ motorResponse;
+    leftSpeed=maxSpeed;
+  }
+
+}
+
+void motor(int left, int right)
+{
+  
+  if(right>0)
+  {
+  analogWrite(motorPin1,right);
+  analogWrite(motorPin2,0);
+  }
+  else
+  {
+    analogWrite(motorPin1,0);
+    analogWrite(motorPin2,-right);
+  }
+
+  if(left>0)
+  {
+  analogWrite(motorPin3,left);
+  analogWrite(motorPin4,0);
+  }
+  else
+  {
+   analogWrite(motorPin3,0);
+   analogWrite(motorPin4,-left); 
+  }
+
+ }
+
+void CRotate()
+{
+  analogWrite(motorPin1,0);
+  analogWrite(motorPin2, 50);
+  analogWrite(motorPin3, 50);
+  analogWrite(motorPin4,0);
+
+}
+
+void ACRotate()
+{
+  analogWrite(motorPin1,50);
+  analogWrite(motorPin2,0);
+  analogWrite(motorPin3,0);
+  analogWrite(motorPin4,50);
+
+}
+
+void brake()
+{
+  analogWrite(motorPin1, 0);
+  analogWrite(motorPin2, 0);
+  analogWrite(motorPin3, 0);
+  analogWrite(motorPin4, 0);
+}
+
+void goForward()
+{
+  analogWrite(motorPin1,maxSpeed);
+  analogWrite(motorPin2, 0);
+  analogWrite(motorPin3, maxSpeed);
+  analogWrite(motorPin4,0);
+}
+
+void goLeft()
+{
+  analogWrite(motorPin1,0);
+  analogWrite(motorPin2,0);
+  analogWrite(motorPin3, maxSpeed);
+  analogWrite(motorPin4,0);
+}
+
+void goRight()
+{
+  analogWrite(motorPin1,maxSpeed);
+  analogWrite(motorPin2,0);
+  analogWrite(motorPin3,0);
+  analogWrite(motorPin4,0);
+}
+
+void calibration()
+{
+  CRotate();
+  int sensorArray[sensorNum][2];
+
+  for(int i = 0; i < sensorNum; i++)
+    {
+      sensorArray[i][0] = analogRead(A0+i);
+      sensorArray[i][1] = analogRead(A0+i);
+    }
+ 
+
+  int loopCounter = (int)(time * 1000 / 2.5);  
+  while(loopCounter)
+  {
+    for(int i = 0; i < sensorNum; i++)
+    {
+      if(analogRead(A0+i)<sensorArray[i][0]) sensorArray[i][0]=analogRead(A0+i);
+      if(analogRead(A0+i)>sensorArray[i][1]) sensorArray[i][1]=analogRead(A0+i);
+    }
+  loopCounter--;
+  }
+
+ for(int i=0; i < sensorNum; i++)
+  blackLimit[i] = (int)(sensorArray[i][0] + safety * (sensorArray[i][1] - sensorArray[i][0]));
+
+brake();
+delay(1000); 
+}
+
