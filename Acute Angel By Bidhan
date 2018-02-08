@@ -1,0 +1,118 @@
+void loop()
+{
+
+   /* for(int i=0; i<6; i++ )
+    {
+        Serial.print(analogRead(i));
+        Serial.print(" ");
+
+
+    }*/
+     
+        Serial.print(leftIR);
+        Serial.print(" ");
+        Serial.print(rightIR);
+        Serial.print(" ");
+    sensorMapping();
+    if(digitalReading[4]==1){
+        linegap++;
+        if(linegap>60){
+            
+            rightIR = 0;
+            leftIR = 0;
+          }
+        }
+   else
+    linegap=0;
+   if(digitalReading[0]==1&&digitalReading[1]==1&&digitalReading[2]==1&&digitalReading[3]==1&&digitalReading[4]==1&&digitalReading[5]==1&&digitalReading[6]==1&&digitalReading[7]==1)
+    {
+            int brakeCount=0;
+         
+            while(digitalReading[0]==1&&digitalReading[1]==1&&digitalReading[2]==1&&digitalReading[3]==1&&digitalReading[4]==1&&digitalReading[5]==1&&digitalReading[6]==1&&digitalReading[7]==1)
+            {
+                sensorMapping();
+                brakeCount++;
+                if(brakeCount>300)
+                brake();
+            }
+    }  
+      
+    else if(mappedValue!=100)  //if bot is not fully on white
+    {
+        pid();
+        motor(leftSpeed,rightSpeed);
+    }
+    else
+    {
+
+        if(leftIR == 1 && rightIR ==0)
+        {
+
+            plannedACRotate();
+            while(digitalReading[3] == 0&&digitalReading[4] == 0)
+            {
+                sensorMapping();
+
+            }
+
+            leftIR = 0;
+        }
+        else if(leftIR == 0 && rightIR ==1)
+        {
+            plannedCRotate();
+            while(digitalReading[3] == 0&&digitalReading[4] == 0)
+            {
+                sensorMapping();
+
+            }
+
+            rightIR = 0;
+           
+        }
+        else if(leftIR == 0 && rightIR ==0)
+        {
+          goForward();
+            while(digitalReading[3] == 0&&digitalReading[4] == 0)
+            {
+                sensorMapping();
+
+            }
+            rightIR = 0;
+            leftIR = 0;
+        }
+    }
+    Serial.println();
+   
+}
+
+void sensorMapping()
+{
+    int sum=0,count=0;
+
+    for (int i = 0; i <sensorNum; i++)
+    {
+
+        if (analogRead(i) < blackLimit[i])
+        {
+            digitalReading[i] = 1;
+            sum += i*2;
+            count++;
+        }
+        else
+            digitalReading[i] = 0;
+
+    }
+    if(count!=0)
+    {
+        mappedValue = sum / count;
+    }
+    else
+        mappedValue=100;
+
+    if(digitalReading[0] || digitalReading[7])
+    {
+        leftIR = digitalReading[0];
+        rightIR = digitalReading[7];
+    }
+
+}
